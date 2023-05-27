@@ -4,10 +4,6 @@ namespace Whisper;
 
 class Whisper
 {
-    const SAMPLE_RATE = 16000;
-    const CHUNK_LENGTH = 30;
-    const N_SAMPLES = self::CHUNK_LENGTH * self::SAMPLE_RATE;
-
     protected static array $models = [
         'tiny.en',
         'tiny',
@@ -22,7 +18,8 @@ class Whisper
         'large'
     ];
 
-    public function __construct(string $name, string $device, string $download_root = "~/.cache/whisper", bool $in_memory = false)
+    // TODO: Default to cpu, pass to Python
+    public function __construct(protected string $model = 'base', protected string $device = 'cuda', protected string $download_root = '~/.cache/whisper', protected bool $in_memory = false)
     {
 
     }
@@ -41,7 +38,7 @@ class Whisper
      *
      * @return static The Whisper ASR model instance
      */
-    public static function loadModel(string $name, string $device, string $download_root = "~/.cache/whisper", bool $in_memory = false): static
+    public static function loadModel(string $name, string $device, string $download_root = '~/.cache/whisper', bool $in_memory = false): static
     {
         return new static($name, $device, $download_root, $in_memory);
     }
@@ -56,55 +53,20 @@ class Whisper
         return array_keys(static::$models);
     }
 
-    /**
-     * Open an audio file and read as mono waveform, resampling as necessary
-     *
-     * @param string $file
-     * @param int $sr
-     * @return void     ---  A NumPy array containing the audio waveform, in float32 dtype. TODO
-     */
-    public function loadAudio(string $file, int $sr = self::SAMPLE_RATE)
+    public function transcribe(string $audio)
     {
+        $script = <<<PY
+import whisper
 
-    }
+model = whisper.load_model("{$this->model}")
+result = model.transcribe("{$audio}")
+print(result["text"])
 
-    public function padOrTrim(array $array, int $length = self::N_SAMPLES, int $axis = -1)
-    {
-        // TODO
-    }
+PY;
+        // TODO: Sanitize input
 
-    public function logMelSpectrogram()
-    {
-        // TODO
-    }
+        $script = escapeshellarg($script);
 
-    public function decodingOptions()
-    {
-        // TODO
-    }
-
-    public function decodingResult()
-    {
-        // TODO
-    }
-
-    public function decode()
-    {
-        
-    }
-
-    public function detectLanguage()
-    {
-
-    }
-
-    public function modelDimensions()
-    {
-
-    }
-
-    public function transcribe()
-    {
-        
+        return `echo {$script} | python3`;
     }
 }
