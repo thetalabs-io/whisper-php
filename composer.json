@@ -1,0 +1,15 @@
+{
+    "name": "thetalabs-io/whisper-php",
+    "type": "project",
+    "description": "PHP wrapper around OpenAI Whisper",
+    "keywords": ["OpenAI", "whisper", "speech to text"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Whisper\\": "src/Whisper/",
+        }
+    }
+}
